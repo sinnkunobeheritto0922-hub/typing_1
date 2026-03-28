@@ -10,7 +10,8 @@ let score = 0;
 let totalQuestions = 10;
 
 function setup() {
-  createCanvas(400, 400);
+  let canvas = createCanvas(400, 400);
+  canvas.parent("game"); // ← これを追加！
   textAlign(CENTER, CENTER);
   textSize(24);
   nextQuestion();
