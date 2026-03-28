@@ -11,7 +11,7 @@ let totalQuestions = 10;
 
 function setup() {
   let canvas = createCanvas(400, 400);
-  canvas.parent("game"); // ← これを追加！
+  canvas.parent("game"); // ← はてなブログの記事本文に置いた <div id="game"> に描画
   textAlign(CENTER, CENTER);
   textSize(24);
   nextQuestion();
