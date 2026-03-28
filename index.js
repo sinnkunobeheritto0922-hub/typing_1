@@ -186,21 +186,21 @@ function drawStartScreen() {
 // -----------------------------
 // マウスクリックでスタート
 // -----------------------------
-//function mousePressed() {
-  //if (!gameStarted) {
-    //if (mouseX > width / 2 - 80 && mouseX < width / 2 + 80 &&
-      //  mouseY > 250 && mouseY < 300) {
+function mousePressed() {
+  if (!gameStarted) {
+    if (mouseX > width / 2 - 80 && mouseX < width / 2 + 80 &&
+        mouseY > 250 && mouseY < 300) {
 
-   //   gameStarted = true;
-   //   isPlaying = true;
-    //  startTime = millis();
-     // score = 0;
+      gameStarted = true;
+      isPlaying = true;
+      startTime = millis();
+      score = 0;
 
       // 入力欄にフォーカス
-      //document.getElementById("typingInput").focus();
-   // }
- // }
-//}
+      document.getElementById("typingInput").focus();
+    }
+  }
+}
 
 // -----------------------------
 // 正解演出
