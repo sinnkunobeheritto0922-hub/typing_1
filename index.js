@@ -25,6 +25,9 @@ let timeLimit = 30; // 秒
 let startTime;
 let isPlaying = true;
 
+// スタート画面
+let gameStarted = false;
+
 // 最高スコア保存
 let bestScore = 0;
 
@@ -46,6 +49,9 @@ function setup() {
   // Enterキーで判定
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
+
+      // スタート前は無視
+      if (!gameStarted) return;
 
       // 時間切れ → 再スタート
       if (!isPlaying) {
@@ -77,13 +83,21 @@ function setup() {
   textSize(24);
 
   nextQuestion();
-  startTime = millis();
 }
 
 // -----------------------------
 // メイン描画
 // -----------------------------
 function draw() {
+
+  // -----------------------------
+  // スタート画面
+  // -----------------------------
+  if (!gameStarted) {
+    drawStartScreen();
+    return;
+  }
+
   // 背景演出
   if (flash > 0) {
     background(255, 255, 150); // 正解：黄色
@@ -148,6 +162,47 @@ function draw() {
 }
 
 // -----------------------------
+// スタート画面描画
+// -----------------------------
+function drawStartScreen() {
+  background(255);
+
+  textSize(36);
+  fill(0);
+  text("タイピングゲーム", width / 2, 150);
+
+  textSize(20);
+  text("スタートをおしてね", width / 2, 200);
+
+  // スタートボタン
+  fill(100, 200, 255);
+  rect(width / 2 - 80, 250, 160, 50, 10);
+
+  fill(0);
+  textSize(24);
+  text("スタート", width / 2, 275);
+}
+
+// -----------------------------
+// マウスクリックでスタート
+// -----------------------------
+function mousePressed() {
+  if (!gameStarted) {
+    if (mouseX > width / 2 - 80 && mouseX < width / 2 + 80 &&
+        mouseY > 250 && mouseY < 300) {
+
+      gameStarted = true;
+      isPlaying = true;
+      startTime = millis();
+      score = 0;
+
+      // 入力欄にフォーカス
+      document.getElementById("typingInput").focus();
+    }
+  }
+}
+
+// -----------------------------
 // 正解演出
 // -----------------------------
 function showCorrectEffect() {
@@ -181,6 +236,9 @@ function restartGame() {
   isPlaying = true;
   startTime = millis();
   nextQuestion();
+
+  // 入力欄にフォーカス
+  document.getElementById("typingInput").focus();
 }
 
 // -----------------------------
@@ -212,7 +270,6 @@ function drawCar(isHappy, isSad) {
   fill(255, 80, 80);
   rect(150, 40, 100, 50, 20);
 
-  // 顔
   fill(255);
   ellipse(200, 120, 60, 40);
 
@@ -257,43 +314,4 @@ function drawPlane(isHappy, isSad) {
     line(215, 115, 225, 110);
     line(235, 110, 245, 115);
   } else {
-    ellipse(220, 115, 8, 8);
-    ellipse(240, 115, 8, 8);
-  }
-
-  arc(230, 130, 25, 15, 0, PI);
-}
-
-// -----------------------------
-// バス
-// -----------------------------
-function drawBus(isHappy, isSad) {
-  fill(180, 255, 180);
-  rect(100, 60, 200, 100, 20);
-
-  fill(255);
-  rect(120, 80, 50, 40, 10);
-  rect(180, 80, 50, 40, 10);
-  rect(240, 80, 40, 40, 10);
-
-  fill(255);
-  ellipse(200, 140, 80, 40);
-
-  fill(0);
-  if (isHappy) {
-    arc(185, 135, 12, 12, 0, PI);
-    arc(215, 135, 12, 12, 0, PI);
-  } else if (isSad) {
-    line(180, 135, 190, 130);
-    line(210, 130, 220, 135);
-  } else {
-    ellipse(185, 135, 8, 8);
-    ellipse(215, 135, 8, 8);
-  }
-
-  arc(200, 150, 30, 20, 0, PI);
-
-  fill(0);
-  ellipse(150, 170, 40, 40);
-  ellipse(250, 170, 40, 40);
-}
+    ellipse
