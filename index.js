@@ -1,3 +1,4 @@
+console.log("index.js loaded");
 // p5.js インスタンスモード
 new p5((p) => {
 
