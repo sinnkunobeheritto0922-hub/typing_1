@@ -1,3 +1,6 @@
+// -----------------------------
+// 単語データ
+// -----------------------------
 let words = [
   { word: "くるま", type: "car" },
   { word: "ひこうき", type: "plane" },
@@ -7,76 +10,138 @@ let words = [
 let current;
 let userInput = "";
 let score = 0;
-let totalQuestions = 10;
 
+// 演出用
+let flash = 0;
+let happy = false;
+let happyTimer = 0;
+
+// -----------------------------
+// セットアップ
+// -----------------------------
 function setup() {
   let canvas = createCanvas(400, 400);
-  canvas.parent("game"); // ← はてなブログの記事本文に置いた <div id="game"> に描画
+  canvas.parent("game");
+
+  // HTML入力欄を取得
+  let input = document.getElementById("typingInput");
+
+  // 入力が変わるたびに判定
+  input.addEventListener("input", () => {
+    userInput = input.value;
+
+    if (userInput === current.word) {
+      score++;
+      showCorrectEffect(); // ← 正解演出
+      input.value = "";
+      userInput = "";
+      nextQuestion();
+    }
+  });
+
   textAlign(CENTER, CENTER);
   textSize(24);
   nextQuestion();
 }
 
+// -----------------------------
+// メイン描画
+// -----------------------------
 function draw() {
-  background(255);
+  // 正解時の光る演出
+  if (flash > 0) {
+    background(255, 255, 150);
+    flash--;
+  } else {
+    background(255);
+  }
 
+  // キャラ描画
   drawCharacter(current.type);
 
+  // 単語
   fill(0);
   textSize(32);
   text(current.word, width / 2, 260);
 
+  // 入力中の文字
   textSize(24);
   text("入力: " + userInput, width / 2, 310);
 
+  // スコア
   textSize(18);
   text("スコア: " + score, width / 2, 360);
-}
 
-function keyTyped() {
-  userInput += key;
-
-  if (userInput === current.word) {
-    score++;
-    nextQuestion();
-  }
-
-  if (userInput.length > current.word.length) {
-    userInput = "";
+  // ニコニコ時間の管理
+  if (happy) {
+    happyTimer--;
+    if (happyTimer <= 0) happy = false;
   }
 }
 
+// -----------------------------
+// 正解演出
+// -----------------------------
+function showCorrectEffect() {
+  flash = 10;       // 背景が光る
+  happy = true;     // キャラが笑顔
+  happyTimer = 20;  // 20フレーム笑顔
+}
+
+// -----------------------------
+// 次の問題へ
+// -----------------------------
 function nextQuestion() {
   current = random(words);
   userInput = "";
 }
 
+// -----------------------------
+// キャラ描画
+// -----------------------------
 function drawCharacter(type) {
-  if (type === "car") drawCar();
-  if (type === "plane") drawPlane();
-  if (type === "bus") drawBus();
+  if (type === "car") drawCar(happy);
+  if (type === "plane") drawPlane(happy);
+  if (type === "bus") drawBus(happy);
 }
 
-function drawCar() {
+// -----------------------------
+// 車
+// -----------------------------
+function drawCar(isHappy) {
   fill(80, 150, 255);
   rect(120, 80, 160, 80, 20);
 
   fill(255, 80, 80);
   rect(150, 40, 100, 50, 20);
 
+  // 顔
   fill(255);
   ellipse(200, 120, 60, 40);
+
   fill(0);
-  ellipse(185, 115, 8, 8);
-  ellipse(215, 115, 8, 8);
+  if (isHappy) {
+    // ニコニコ目
+    arc(185, 115, 12, 12, 0, PI);
+    arc(215, 115, 12, 12, 0, PI);
+  } else {
+    ellipse(185, 115, 8, 8);
+    ellipse(215, 115, 8, 8);
+  }
+
+  // 口
   arc(200, 130, 30, 20, 0, PI);
 
+  // タイヤ
   fill(0);
   ellipse(150, 170, 40, 40);
   ellipse(250, 170, 40, 40);
 }
 
-function drawPlane() {
+// -----------------------------
+// 飛行機
+// -----------------------------
+function drawPlane(isHappy) {
   fill(200, 230, 255);
   ellipse(200, 120, 180, 60);
 
@@ -84,20 +149,26 @@ function drawPlane() {
   ellipse(150, 120, 80, 20);
   ellipse(250, 120, 80, 20);
 
-  fill(255, 220, 100);
-  ellipse(120, 120, 30, 30);
-  fill(255, 150, 150);
-  rect(110, 115, 20, 10, 5);
-
+  // 顔
   fill(255);
   ellipse(230, 120, 50, 35);
+
   fill(0);
-  ellipse(220, 115, 8, 8);
-  ellipse(240, 115, 8, 8);
+  if (isHappy) {
+    arc(220, 115, 12, 12, 0, PI);
+    arc(240, 115, 12, 12, 0, PI);
+  } else {
+    ellipse(220, 115, 8, 8);
+    ellipse(240, 115, 8, 8);
+  }
+
   arc(230, 130, 25, 15, 0, PI);
 }
 
-function drawBus() {
+// -----------------------------
+// バス
+// -----------------------------
+function drawBus(isHappy) {
   fill(180, 255, 180);
   rect(100, 60, 200, 100, 20);
 
@@ -106,13 +177,22 @@ function drawBus() {
   rect(180, 80, 50, 40, 10);
   rect(240, 80, 40, 40, 10);
 
+  // 顔
   fill(255);
   ellipse(200, 140, 80, 40);
+
   fill(0);
-  ellipse(185, 135, 8, 8);
-  ellipse(215, 135, 8, 8);
+  if (isHappy) {
+    arc(185, 135, 12, 12, 0, PI);
+    arc(215, 135, 12, 12, 0, PI);
+  } else {
+    ellipse(185, 135, 8, 8);
+    ellipse(215, 135, 8, 8);
+  }
+
   arc(200, 150, 30, 20, 0, PI);
 
+  // タイヤ
   fill(0);
   ellipse(150, 170, 40, 40);
   ellipse(250, 170, 40, 40);
