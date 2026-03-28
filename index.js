@@ -23,20 +23,28 @@ function setup() {
   let canvas = createCanvas(400, 400);
   canvas.parent("game");
 
-  // HTML入力欄を取得
   let input = document.getElementById("typingInput");
 
-  // 入力が変わるたびに判定
+  // Enterキーで判定する
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      if (input.value === current.word) {
+        score++;
+        showCorrectEffect();
+        input.value = "";
+        userInput = "";
+        nextQuestion();
+      } else {
+        // 不正解のときの演出（必要なら追加できる）
+        input.value = "";
+        userInput = "";
+      }
+    }
+  });
+
+  // 入力途中の文字を表示するだけ（判定はしない）
   input.addEventListener("input", () => {
     userInput = input.value;
-
-    if (userInput === current.word) {
-      score++;
-      showCorrectEffect(); // ← 正解演出
-      input.value = "";
-      userInput = "";
-      nextQuestion();
-    }
   });
 
   textAlign(CENTER, CENTER);
