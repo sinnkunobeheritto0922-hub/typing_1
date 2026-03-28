@@ -16,18 +16,44 @@ let flash = 0;
 let happy = false;
 let happyTimer = 0;
 
+let missFlash = 0;
+let sad = false;
+let sadTimer = 0;
+
+// タイムアタック
+let timeLimit = 30; // 秒
+let startTime;
+let isPlaying = true;
+
+// 最高スコア保存
+let bestScore = 0;
+
 // -----------------------------
 // セットアップ
 // -----------------------------
 function setup() {
-  let canvas = createCanvas(400, 400);
+  let canvas = createCanvas(400, 420);
   canvas.parent("game");
+
+  // 最高スコア読み込み
+  let saved = localStorage.getItem("bestScore");
+  if (saved !== null) {
+    bestScore = Number(saved);
+  }
 
   let input = document.getElementById("typingInput");
 
-  // Enterキーで判定する
+  // Enterキーで判定
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
+
+      // 時間切れ → 再スタート
+      if (!isPlaying) {
+        restartGame();
+        return;
+      }
+
+      // 正解判定
       if (input.value === current.word) {
         score++;
         showCorrectEffect();
@@ -35,37 +61,42 @@ function setup() {
         userInput = "";
         nextQuestion();
       } else {
-        // 不正解のときの演出（必要なら追加できる）
+        showMissEffect();
         input.value = "";
         userInput = "";
       }
     }
   });
 
-  // 入力途中の文字を表示するだけ（判定はしない）
+  // 入力途中の文字を表示するだけ
   input.addEventListener("input", () => {
     userInput = input.value;
   });
 
   textAlign(CENTER, CENTER);
   textSize(24);
+
   nextQuestion();
+  startTime = millis();
 }
 
 // -----------------------------
 // メイン描画
 // -----------------------------
 function draw() {
-  // 正解時の光る演出
+  // 背景演出
   if (flash > 0) {
-    background(255, 255, 150);
+    background(255, 255, 150); // 正解：黄色
     flash--;
+  } else if (missFlash > 0) {
+    background(255, 150, 150); // 不正解：赤
+    missFlash--;
   } else {
     background(255);
   }
 
   // キャラ描画
-  drawCharacter(current.type);
+  drawCharacter(current.type, happy, sad);
 
   // 単語
   fill(0);
@@ -78,12 +109,41 @@ function draw() {
 
   // スコア
   textSize(18);
-  text("スコア: " + score, width / 2, 360);
+  text("スコア: " + score, width / 2, 350);
 
-  // ニコニコ時間の管理
-  if (happy) {
-    happyTimer--;
-    if (happyTimer <= 0) happy = false;
+  // 最高スコア
+  text("さいこうスコア: " + bestScore, width / 2, 390);
+
+  // タイムアタック
+  if (isPlaying) {
+    let elapsed = floor((millis() - startTime) / 1000);
+    let remaining = timeLimit - elapsed;
+
+    if (remaining <= 0) {
+      isPlaying = false;
+      remaining = 0;
+
+      // 最高スコア更新
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem("bestScore", bestScore);
+      }
+    }
+
+    textSize(20);
+    text("のこり時間: " + remaining + "秒", width / 2, 30);
+  }
+
+  // 時間切れ画面
+  if (!isPlaying) {
+    textSize(32);
+    fill(0);
+    text("じかんぎれ！", width / 2, 150);
+    text("スコア: " + score, width / 2, 200);
+    text("さいこうスコア: " + bestScore, width / 2, 250);
+
+    textSize(20);
+    text("Enterキーで もういちど", width / 2, 300);
   }
 }
 
@@ -91,9 +151,18 @@ function draw() {
 // 正解演出
 // -----------------------------
 function showCorrectEffect() {
-  flash = 10;       // 背景が光る
-  happy = true;     // キャラが笑顔
-  happyTimer = 20;  // 20フレーム笑顔
+  flash = 10;
+  happy = true;
+  happyTimer = 20;
+}
+
+// -----------------------------
+// 不正解演出
+// -----------------------------
+function showMissEffect() {
+  missFlash = 10;
+  sad = true;
+  sadTimer = 20;
 }
 
 // -----------------------------
@@ -105,18 +174,38 @@ function nextQuestion() {
 }
 
 // -----------------------------
+// ゲーム再スタート
+// -----------------------------
+function restartGame() {
+  score = 0;
+  isPlaying = true;
+  startTime = millis();
+  nextQuestion();
+}
+
+// -----------------------------
 // キャラ描画
 // -----------------------------
-function drawCharacter(type) {
-  if (type === "car") drawCar(happy);
-  if (type === "plane") drawPlane(happy);
-  if (type === "bus") drawBus(happy);
+function drawCharacter(type, isHappy, isSad) {
+  if (type === "car") drawCar(isHappy, isSad);
+  if (type === "plane") drawPlane(isHappy, isSad);
+  if (type === "bus") drawBus(isHappy, isSad);
+
+  // 表情タイマー管理
+  if (isHappy) {
+    happyTimer--;
+    if (happyTimer <= 0) happy = false;
+  }
+  if (isSad) {
+    sadTimer--;
+    if (sadTimer <= 0) sad = false;
+  }
 }
 
 // -----------------------------
 // 車
 // -----------------------------
-function drawCar(isHappy) {
+function drawCar(isHappy, isSad) {
   fill(80, 150, 255);
   rect(120, 80, 160, 80, 20);
 
@@ -129,18 +218,18 @@ function drawCar(isHappy) {
 
   fill(0);
   if (isHappy) {
-    // ニコニコ目
     arc(185, 115, 12, 12, 0, PI);
     arc(215, 115, 12, 12, 0, PI);
+  } else if (isSad) {
+    line(180, 115, 190, 110);
+    line(210, 110, 220, 115);
   } else {
     ellipse(185, 115, 8, 8);
     ellipse(215, 115, 8, 8);
   }
 
-  // 口
   arc(200, 130, 30, 20, 0, PI);
 
-  // タイヤ
   fill(0);
   ellipse(150, 170, 40, 40);
   ellipse(250, 170, 40, 40);
@@ -149,7 +238,7 @@ function drawCar(isHappy) {
 // -----------------------------
 // 飛行機
 // -----------------------------
-function drawPlane(isHappy) {
+function drawPlane(isHappy, isSad) {
   fill(200, 230, 255);
   ellipse(200, 120, 180, 60);
 
@@ -157,7 +246,6 @@ function drawPlane(isHappy) {
   ellipse(150, 120, 80, 20);
   ellipse(250, 120, 80, 20);
 
-  // 顔
   fill(255);
   ellipse(230, 120, 50, 35);
 
@@ -165,6 +253,9 @@ function drawPlane(isHappy) {
   if (isHappy) {
     arc(220, 115, 12, 12, 0, PI);
     arc(240, 115, 12, 12, 0, PI);
+  } else if (isSad) {
+    line(215, 115, 225, 110);
+    line(235, 110, 245, 115);
   } else {
     ellipse(220, 115, 8, 8);
     ellipse(240, 115, 8, 8);
@@ -176,7 +267,7 @@ function drawPlane(isHappy) {
 // -----------------------------
 // バス
 // -----------------------------
-function drawBus(isHappy) {
+function drawBus(isHappy, isSad) {
   fill(180, 255, 180);
   rect(100, 60, 200, 100, 20);
 
@@ -185,7 +276,6 @@ function drawBus(isHappy) {
   rect(180, 80, 50, 40, 10);
   rect(240, 80, 40, 40, 10);
 
-  // 顔
   fill(255);
   ellipse(200, 140, 80, 40);
 
@@ -193,6 +283,9 @@ function drawBus(isHappy) {
   if (isHappy) {
     arc(185, 135, 12, 12, 0, PI);
     arc(215, 135, 12, 12, 0, PI);
+  } else if (isSad) {
+    line(180, 135, 190, 130);
+    line(210, 130, 220, 135);
   } else {
     ellipse(185, 135, 8, 8);
     ellipse(215, 135, 8, 8);
@@ -200,7 +293,6 @@ function drawBus(isHappy) {
 
   arc(200, 150, 30, 20, 0, PI);
 
-  // タイヤ
   fill(0);
   ellipse(150, 170, 40, 40);
   ellipse(250, 170, 40, 40);
